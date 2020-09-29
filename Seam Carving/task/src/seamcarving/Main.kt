@@ -40,3 +40,7 @@ fun createFile(image: BufferedImage) {
     val outFile = File(name)
     ImageIO.write(image, "png", outFile)
 }
+
+fun aaa() {
+
+}
