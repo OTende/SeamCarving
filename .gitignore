@@ -1,0 +1,32 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+# Info
+*.yaml
+*.html
+
+*.png
+*.gradle
+*.bat
+gradlew
+
+# Package Files #
+build/
+Problems/
+gradle/
+*.idea/
+frameworkLessonHistory/
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.xml
+
+hs_err_pid*
+
+
