@@ -13,6 +13,7 @@
 gradlew
 
 # Package Files #
+README.md
 build/
 Problems/
 gradle/
