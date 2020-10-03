@@ -22,36 +22,48 @@ fun createFile(image: BufferedImage, name: String) {
     ImageIO.write(image, "png", File(name))
 }
 
-
 fun BufferedImage.negate(): BufferedImage {
     for (x in 0 until this.width) {
         for (y in 0 until this.height) {
-            val pixel = this.getRGB(x, y)
-            var newColour = Color(pixel)
-            newColour = Color(255 - newColour.red, 255 - newColour.green, 255 - newColour.blue)
-            this.setRGB(x, y, newColour.rgb)
+            var newColor = Color(this.getRGB(x, y))
+            newColor = Color(255 - newColor.red, 255 - newColor.green, 255 - newColor.blue)
+            this.setRGB(x, y, newColor.rgb)
         }
     }
     return this
 }
 
-var energyMap = mutableMapOf<String, Double>()
+private val energyMap = mutableMapOf<String, Double>()
 
 fun BufferedImage.greyScale(): BufferedImage {
+
     for (x in 0 until this.width) {
         for (y in 0 until this.height) {
-            energyMap["$x $y"] = getColorScheme(when (x) {
+            energyMap["$x - $y"] = getEnergyOfPixel(when (x) {
                 0 -> 1
+                this.width - 1 -> this.width - 2
                 else -> x
             }, when (y) {
                 0 -> 1
+                this.height - 1 -> this.height - 2
                 else -> y
             }, this)
         }
     }
-    // TODO: Update every pixel by its intensity
+
+    for (x in 0 until this.width) {
+        for (y in 0 until this.height) {
+            this.setNewColor(x, y)
+        }
+    }
+
+    return this
 }
 
-private fun getMax(map: MutableCollection<Double>): Double {
-    return map.maxOrNull()!!
+var maxEnergyValue: Double = energyMap.values.maxOrNull() ?: 150.0
+
+private fun BufferedImage.setNewColor(x: Int, y: Int) {
+    val intensity = (255.0 * energyMap["$x - $y"]!! / maxEnergyValue).toInt()
+    val newColor = Color(intensity, intensity, intensity)
+    this.setRGB(x, y, newColor.rgb)
 }
