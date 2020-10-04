@@ -35,32 +35,25 @@ fun BufferedImage.negate(): BufferedImage {
 
 private val energyMap = mutableMapOf<String, Double>()
 
+var maxEnergyValue: Double = 0.0
+
 fun BufferedImage.greyScale(): BufferedImage {
 
     for (x in 0 until this.width) {
         for (y in 0 until this.height) {
-            energyMap["$x - $y"] = getEnergyOfPixel(when (x) {
-                0 -> 1
-                this.width - 1 -> this.width - 2
-                else -> x
-            }, when (y) {
-                0 -> 1
-                this.height - 1 -> this.height - 2
-                else -> y
-            }, this)
+            energyMap["$x - $y"] = getEnergyOfPixel(x, y, this)
         }
     }
+
+    maxEnergyValue = energyMap.values.max()!!
 
     for (x in 0 until this.width) {
         for (y in 0 until this.height) {
             this.setNewColor(x, y)
         }
     }
-
     return this
 }
-
-var maxEnergyValue: Double = energyMap.values.maxOrNull() ?: 150.0
 
 private fun BufferedImage.setNewColor(x: Int, y: Int) {
     val intensity = (255.0 * energyMap["$x - $y"]!! / maxEnergyValue).toInt()
