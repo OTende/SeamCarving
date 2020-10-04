@@ -5,6 +5,7 @@ import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_RGB
 import java.io.File
+import java.util.*
 import javax.imageio.ImageIO
 
 fun drawImage(width: Int, height: Int): BufferedImage {
@@ -35,18 +36,14 @@ fun BufferedImage.negate(): BufferedImage {
 
 private val energyMap = mutableMapOf<String, Double>()
 
-var maxEnergyValue: Double = 0.0
+var maxEnergyValue: Double = Collections.max(energyMap.values)
 
 fun BufferedImage.greyScale(): BufferedImage {
-
     for (x in 0 until this.width) {
         for (y in 0 until this.height) {
             energyMap["$x - $y"] = getEnergyOfPixel(x, y, this)
         }
     }
-
-    maxEnergyValue = energyMap.values.max()!!
-
     for (x in 0 until this.width) {
         for (y in 0 until this.height) {
             this.setNewColor(x, y)
