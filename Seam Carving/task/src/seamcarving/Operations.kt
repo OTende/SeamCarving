@@ -36,14 +36,10 @@ fun BufferedImage.negate(): BufferedImage {
 
 private val energyMap = mutableMapOf<String, Double>()
 
-var maxEnergyValue: Double = Collections.max(energyMap.values)
+var maxEnergyValue: Double = 0.0
 
 fun BufferedImage.greyScale(): BufferedImage {
-    for (x in 0 until this.width) {
-        for (y in 0 until this.height) {
-            energyMap["$x - $y"] = getEnergyOfPixel(x, y, this)
-        }
-    }
+    maxEnergyValue = energyMap.values.max()!!
     for (x in 0 until this.width) {
         for (y in 0 until this.height) {
             this.setNewColor(x, y)
@@ -52,8 +48,57 @@ fun BufferedImage.greyScale(): BufferedImage {
     return this
 }
 
+
 private fun BufferedImage.setNewColor(x: Int, y: Int) {
     val intensity = (255.0 * energyMap["$x - $y"]!! / maxEnergyValue).toInt()
-    val newColor = Color(intensity, intensity, intensity)
-    this.setRGB(x, y, newColor.rgb)
+    this.setRGB(x, y, Color(intensity, intensity, intensity).rgb)
 }
+
+fun BufferedImage.findTheSeam(): BufferedImage {
+    val energy = getEnergyOfPixel(this)
+    var lowestBottom = Double.MAX_VALUE
+    var seamTotal: Double
+    var oldSeamTotal = Double.MAX_VALUE
+    val stack = Stack<Int>()
+    val oldStack = Stack<Int>()
+    val jLast = energy[0].lastIndex
+    val iLast = energy.lastIndex
+    val setRed = { i: Int, j: Int -> this.setRGB(i, j, Color(255, 0, 0).rgb) }
+
+    for (j in 1..jLast) {
+        for (i in 0..iLast) {
+            var add = energy[i][j - 1]
+            if (i != 0 && energy[i - 1][j - 1] < add) add = energy[i - 1][j - 1]
+            if (i != iLast && energy[i + 1][j - 1] < add) add = energy[i + 1][j - 1]
+            energy[i][j] += add
+            if (j == jLast && energy[i][j] < lowestBottom) lowestBottom = energy[i][j]
+        }
+    }
+
+    for (i in 0..energy.lastIndex) {
+        if (energy[i][jLast] == lowestBottom) {
+            stack.push(i)
+            seamTotal = energy[i][jLast]
+            var index = i
+            for (j in jLast - 1 downTo 0) {
+                var lowIndex = index
+                if (index != 0 && energy[index - 1][j] < energy[index][j]) lowIndex -= 1
+                if (index != iLast && energy[index + 1][j] < energy[lowIndex][j]) lowIndex = index + 1
+                index = lowIndex
+                stack.push(index)
+                seamTotal += energy[index][j]
+            }
+            if (seamTotal < oldSeamTotal) {
+                if (oldStack.isNotEmpty()) oldStack.clear()
+                oldSeamTotal = seamTotal
+                oldStack.addAll(stack)
+            }
+            stack.clear()
+        }
+    }
+
+    for (j in 0..jLast) setRed(oldStack.pop(), j)
+
+    return this
+}
+
