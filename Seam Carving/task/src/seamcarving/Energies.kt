@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage
 import java.math.RoundingMode
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlin.time.seconds
 
 fun getEnergyOfPixel(image: BufferedImage): Array<Array<Double>> {
     val energy = Array(image.width) { Array(image.height) { 0.0 } }
@@ -35,4 +36,14 @@ fun getEnergyOfPixel(image: BufferedImage): Array<Array<Double>> {
         }
     }
     return energy
+}
+
+fun getMaxEnergy(array: Array<Array<Double>>): Double {
+    var max = array[0][0]
+    for (i in array.indices) {
+        for (j in array[i].indices) {
+            if (array[i][j] > max) max = array[i][j]
+        }
+    }
+    return max
 }

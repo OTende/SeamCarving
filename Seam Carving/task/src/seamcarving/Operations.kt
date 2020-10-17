@@ -2,6 +2,7 @@ package seamcarving
 
 import java.awt.Color
 import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_RGB
 import java.io.File
@@ -34,12 +35,7 @@ fun BufferedImage.negate(): BufferedImage {
     return this
 }
 
-private val energyMap = mutableMapOf<String, Double>()
-
-var maxEnergyValue: Double = 0.0
-
 fun BufferedImage.greyScale(): BufferedImage {
-    maxEnergyValue = energyMap.values.max()!!
     for (x in 0 until this.width) {
         for (y in 0 until this.height) {
             this.setNewColor(x, y)
@@ -48,16 +44,16 @@ fun BufferedImage.greyScale(): BufferedImage {
     return this
 }
 
-
 private fun BufferedImage.setNewColor(x: Int, y: Int) {
-    val intensity = (255.0 * energyMap["$x - $y"]!! / maxEnergyValue).toInt()
+    val energy = getEnergyOfPixel(this)
+    val maxEnergyValue = getMaxEnergy(energy)
+    val intensity = (255.0 * energy[x][y]!! / maxEnergyValue).toInt()
     this.setRGB(x, y, Color(intensity, intensity, intensity).rgb)
 }
 
 fun BufferedImage.findTheSeam(): BufferedImage {
     val energy = getEnergyOfPixel(this)
     var lowestBottom = Double.MAX_VALUE
-    var seamTotal: Double
     var oldSeamTotal = Double.MAX_VALUE
     val stack = Stack<Int>()
     val oldStack = Stack<Int>()
@@ -78,7 +74,7 @@ fun BufferedImage.findTheSeam(): BufferedImage {
     for (i in 0..energy.lastIndex) {
         if (energy[i][jLast] == lowestBottom) {
             stack.push(i)
-            seamTotal = energy[i][jLast]
+            var seamTotal = energy[i][jLast]
             var index = i
             for (j in jLast - 1 downTo 0) {
                 var lowIndex = index
@@ -96,9 +92,7 @@ fun BufferedImage.findTheSeam(): BufferedImage {
             stack.clear()
         }
     }
-
     for (j in 0..jLast) setRed(oldStack.pop(), j)
 
     return this
 }
-
