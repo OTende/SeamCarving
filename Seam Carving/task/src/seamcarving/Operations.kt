@@ -2,7 +2,6 @@ package seamcarving
 
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Image
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_RGB
 import java.io.File
@@ -51,38 +50,52 @@ private fun BufferedImage.setNewColor(x: Int, y: Int) {
     this.setRGB(x, y, Color(intensity, intensity, intensity).rgb)
 }
 
-fun BufferedImage.findTheSeam(): BufferedImage {
+fun BufferedImage.findTheVerticalSeam(): BufferedImage {
+    return this.rotate().findTheHorizontalSeam().rotate()
+}
+
+private fun BufferedImage.rotate(): BufferedImage {
+    val newImage = BufferedImage(this.height, this.width, TYPE_INT_RGB)
+    for (i in 0 until this.width) {
+        for (j in 0 until this.height) {
+            newImage.setRGB(j, i, Color(this.getRGB(i, j)).rgb)
+        }
+    }
+    return newImage
+}
+
+fun BufferedImage.findTheHorizontalSeam(): BufferedImage {
     val energy = getEnergyOfPixel(this)
     var lowestBottom = Double.MAX_VALUE
     var oldSeamTotal = Double.MAX_VALUE
     val stack = Stack<Int>()
     val oldStack = Stack<Int>()
-    val jLast = energy[0].lastIndex
-    val iLast = energy.lastIndex
+    val yLast = energy[0].lastIndex
+    val xLast = energy.lastIndex
     val setRed = { i: Int, j: Int -> this.setRGB(i, j, Color(255, 0, 0).rgb) }
 
-    for (j in 1..jLast) {
-        for (i in 0..iLast) {
-            var add = energy[i][j - 1]
-            if (i != 0 && energy[i - 1][j - 1] < add) add = energy[i - 1][j - 1]
-            if (i != iLast && energy[i + 1][j - 1] < add) add = energy[i + 1][j - 1]
-            energy[i][j] += add
-            if (j == jLast && energy[i][j] < lowestBottom) lowestBottom = energy[i][j]
+    for (y in 1..yLast) {
+        for (x in 0..xLast) {
+            var add = energy[x][y - 1]
+            if (x != 0 && energy[x - 1][y - 1] < add) add = energy[x - 1][y - 1]
+            if (x != xLast && energy[x + 1][y - 1] < add) add = energy[x + 1][y - 1]
+            energy[x][y] += add
+            if (y == yLast && energy[x][y] < lowestBottom) lowestBottom = energy[x][y]
         }
     }
 
-    for (i in 0..energy.lastIndex) {
-        if (energy[i][jLast] == lowestBottom) {
-            stack.push(i)
-            var seamTotal = energy[i][jLast]
-            var index = i
-            for (j in jLast - 1 downTo 0) {
+    for (x in 0..energy.lastIndex) {
+        if (energy[x][yLast] == lowestBottom) {
+            stack.push(x)
+            var seamTotal = energy[x][yLast]
+            var index = x
+            for (y in yLast - 1 downTo 0) {
                 var lowIndex = index
-                if (index != 0 && energy[index - 1][j] < energy[index][j]) lowIndex -= 1
-                if (index != iLast && energy[index + 1][j] < energy[lowIndex][j]) lowIndex = index + 1
+                if (index != 0 && energy[index - 1][y] < energy[index][y]) lowIndex -= 1
+                if (index != xLast && energy[index + 1][y] < energy[lowIndex][y]) lowIndex = index + 1
                 index = lowIndex
                 stack.push(index)
-                seamTotal += energy[index][j]
+                seamTotal += energy[index][y]
             }
             if (seamTotal < oldSeamTotal) {
                 if (oldStack.isNotEmpty()) oldStack.clear()
@@ -92,7 +105,6 @@ fun BufferedImage.findTheSeam(): BufferedImage {
             stack.clear()
         }
     }
-    for (j in 0..jLast) setRed(oldStack.pop(), j)
-
+    for (j in 0..yLast) setRed(oldStack.pop(), j)
     return this
 }
