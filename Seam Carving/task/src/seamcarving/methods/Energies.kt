@@ -1,13 +1,11 @@
-package seamcarving
+package seamcarving.methods
 
 import java.awt.Color
 import java.awt.image.BufferedImage
-import java.math.RoundingMode
 import kotlin.math.pow
 import kotlin.math.sqrt
-import kotlin.time.seconds
 
-fun getEnergyOfPixel(image: BufferedImage): Array<Array<Double>> {
+internal fun getEnergyOfPixel(image: BufferedImage): Array<Array<Double>> {
     val energy = Array(image.width) { Array(image.height) { 0.0 } }
     for (x in 0 until image.width) {
         for (y in 0 until image.height) {
@@ -38,7 +36,7 @@ fun getEnergyOfPixel(image: BufferedImage): Array<Array<Double>> {
     return energy
 }
 
-fun getMaxEnergy(array: Array<Array<Double>>): Double {
+internal fun getMaxEnergy(array: Array<Array<Double>>): Double {
     var max = array[0][0]
     for (i in array.indices) {
         for (j in array[i].indices) {

@@ -1,4 +1,4 @@
-package seamcarving
+package seamcarving.methods
 
 import java.awt.Color
 import java.awt.Graphics2D
@@ -50,7 +50,7 @@ private fun BufferedImage.setNewColor(x: Int, y: Int) {
     this.setRGB(x, y, Color(intensity, intensity, intensity).rgb)
 }
 
-fun BufferedImage.findTheVerticalSeam(): BufferedImage {
+private fun BufferedImage.findTheVerticalSeam(): BufferedImage {
     return this.rotate().findTheHorizontalSeam().rotate()
 }
 
@@ -64,7 +64,7 @@ private fun BufferedImage.rotate(): BufferedImage {
     return newImage
 }
 
-fun BufferedImage.findTheHorizontalSeam(): BufferedImage {
+private fun BufferedImage.findTheHorizontalSeam(): BufferedImage {
     val energy = getEnergyOfPixel(this)
     var lowestBottom = Double.MAX_VALUE
     var oldSeamTotal = Double.MAX_VALUE
@@ -72,7 +72,6 @@ fun BufferedImage.findTheHorizontalSeam(): BufferedImage {
     val oldStack = Stack<Int>()
     val yLast = energy[0].lastIndex
     val xLast = energy.lastIndex
-    val setRed = { i: Int, j: Int -> this.setRGB(i, j, Color(255, 0, 0).rgb) }
 
     for (y in 1..yLast) {
         for (x in 0..xLast) {
@@ -105,6 +104,28 @@ fun BufferedImage.findTheHorizontalSeam(): BufferedImage {
             stack.clear()
         }
     }
-    for (j in 0..yLast) setRed(oldStack.pop(), j)
-    return this
+    val newImage = BufferedImage(this.width - 1, this.height, TYPE_INT_RGB)
+    for (j in 0..yLast) {
+        val skipNum = oldStack.pop()
+        var toSkip = false
+        for (i in 0..xLast) {
+            if (i == skipNum) {
+                toSkip = true
+                continue
+            }
+            newImage.setRGB(if (toSkip) i - 1 else i, j, this.getRGB(i, j))
+        }
+    }
+    return newImage
+}
+
+fun BufferedImage.dropExcess(width: Int, height: Int): BufferedImage {
+    var newImage = this
+    for (i in 0 until width) {
+        newImage = newImage.findTheHorizontalSeam()
+    }
+    for (i in 0 until height) {
+        newImage = newImage.findTheVerticalSeam()
+    }
+    return newImage
 }
